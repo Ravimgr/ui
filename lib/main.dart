@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:xyba/screens/homepage.dart';
+import 'package:xyba/ui/homepage.dart';
 
 void main() {
   runApp(const MyApp());

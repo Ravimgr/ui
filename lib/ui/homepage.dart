@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:xyba/widgets/custom_clipper.dart';
+import 'package:xyba/widgets/custom_toggle_button.dart';
 import 'package:xyba/widgets/log_card.dart';
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
 
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  bool isSelected = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,8 +58,21 @@ class MyHomePage extends StatelessWidget {
             left: 10,
             bottom: 0,
           ),
-          const Positioned(
-              child: Text('hello'), top: 700, left: 15, right: 0, bottom: 0),
+          Positioned(
+              child: IconToggleButton(
+                isSelected: isSelected,
+                onPressed: () {
+                  setState(
+                    () {
+                      isSelected = !isSelected;
+                    },
+                  );
+                },
+              ),
+              top: 700,
+              left: 15,
+              right: 280,
+              bottom: 8),
         ]),
       ),
     );

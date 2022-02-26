@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:toggle_switch/toggle_switch.dart';
+import 'package:xyba/widgets/custom_dropdown_button.dart';
 
 enum AuthMode { signup, login }
 
 class AuthCard extends StatefulWidget {
-  const AuthCard({
-    Key? key,
-  }) : super(key: key);
+  const AuthCard({Key? key}) : super(key: key);
 
   @override
   _AuthCardState createState() => _AuthCardState();
@@ -16,9 +15,12 @@ class _AuthCardState extends State<AuthCard> {
   final GlobalKey<FormState> _formKey = GlobalKey();
   final _passwordController = TextEditingController();
   bool _isObscure = true;
+  bool _isObscurec = true;
+  AuthMode _authMode = AuthMode.login;
 
   // Initial Selected Value
   String dropdownvalue = 'Item 1';
+  int labled = 0;
 
   // List of items in our dropdown menu
   var items = [
@@ -28,7 +30,6 @@ class _AuthCardState extends State<AuthCard> {
     'Item 4',
     'Item 5',
   ];
-
   @override
   Widget build(BuildContext context) {
     final deviceSize = MediaQuery.of(context).size;
@@ -58,47 +59,47 @@ class _AuthCardState extends State<AuthCard> {
                   activeFgColor: Colors.white,
                   inactiveBgColor: Colors.white,
                   inactiveFgColor: Colors.black,
-                  initialLabelIndex: 0,
+                  initialLabelIndex: labled,
                   totalSwitches: 2,
                   labels: const ['Login', 'Sign Up'],
                   radiusStyle: true,
-                  onToggle: (index) {
-                    //print('switched to: $index');
-                  },
-                ),
-                TextFormField(
-                  decoration: const InputDecoration(labelText: 'Full Name'),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value!.isEmpty) {
-                      return 'Please enter your name!';
+                  onToggle: (v) {
+                    setState(() {
+                      _authMode = _authMode == AuthMode.login
+                          ? AuthMode.signup
+                          : AuthMode.login;
+                    });
+                    if (v == 0) {
+                      labled = 0;
+                      _authMode = AuthMode.login;
                     }
-                    return null;
+                    if (v == 1) {
+                      labled = 1;
+                      _authMode = AuthMode.signup;
+                    }
                   },
                 ),
-                TextFormField(
-                  readOnly: true,
-                  decoration: InputDecoration(
-                    hintText: "I am a",
-                    suffix: DropdownButton(
-                      style: const TextStyle(color: Colors.deepPurple),
-                      value: dropdownvalue,
-                      items: items.map((String item) {
-                        return DropdownMenuItem(
-                          alignment: Alignment.centerLeft,
-                          child: Text(item),
-                          value: item,
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          dropdownvalue = newValue!;
-                          //print(dropdownvalue);
-                        });
-                      },
+                const SizedBox(height: 10.0),
+                if (_authMode == AuthMode.signup)
+                  TextFormField(
+                    enabled: _authMode == AuthMode.signup,
+                    decoration: const InputDecoration(labelText: 'Full Name'),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter your name!';
+                      }
+                      return null;
+                    },
+                  ),
+                if (_authMode == AuthMode.signup)
+                  CustomDropDownwithText(value: dropdownvalue, items: items),
+                if (_authMode == AuthMode.signup)
+                  TextFormField(
+                    decoration: const InputDecoration(
+                      hintText: "Speciality",
                     ),
                   ),
-                ),
                 TextFormField(
                   decoration: const InputDecoration(
                       labelText: 'Mobile Number or E-Mail'),
@@ -115,8 +116,8 @@ class _AuthCardState extends State<AuthCard> {
                       labelText: 'Password',
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _isObscure ? Icons.visibility : Icons.visibility_off,
-                          color: Theme.of(context).primaryColorDark,
+                          _isObscure ? Icons.visibility_off : Icons.visibility,
+                          color: const Color.fromRGBO(105, 49, 142, 1),
                         ),
                         onPressed: () {
                           setState(() {
@@ -133,42 +134,54 @@ class _AuthCardState extends State<AuthCard> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 20.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Forget password?',
-                      style: TextStyle(fontSize: 16.0),
-                    ),
-                    TextButton(
-                      child: const Text(
-                        'Click here',
-                        style: TextStyle(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.bold,
-                            color: Color.fromRGBO(105, 49, 142, 1)),
+                if (_authMode == AuthMode.login)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Forget password?',
+                        style: TextStyle(fontSize: 16.0),
                       ),
-                      onPressed: () {},
-                    ),
-                  ],
-                ),
-
-                // TextFormField(
-                //   decoration:
-                //       const InputDecoration(labelText: 'Confirm Password'),
-                //   obscureText: true,
-                //   validator: (value) {
-                //     if (value != _passwordController.text) {
-                //       return 'Passwords do not match!';
-                //     }
-                //     return null;
-                //   },
-                // ),
+                      TextButton(
+                        child: const Text(
+                          'Click here',
+                          style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromRGBO(105, 49, 142, 1)),
+                        ),
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
+                if (_authMode == AuthMode.signup)
+                  TextFormField(
+                    decoration: InputDecoration(
+                        labelText: 'Confirm Password',
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isObscurec
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            color: const Color.fromRGBO(105, 49, 142, 1),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isObscurec = !_isObscurec;
+                            });
+                          },
+                        )),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value != _passwordController.text) {
+                        return 'Passwords do not match!';
+                      }
+                      return null;
+                    },
+                  ),
                 const SizedBox(
                   height: 20,
                 ),
-
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     minimumSize:
@@ -179,9 +192,9 @@ class _AuthCardState extends State<AuthCard> {
                     ),
                   ),
                   onPressed: () {},
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(fontSize: 18),
+                  child: Text(
+                    _authMode == AuthMode.login ? 'Login' : 'Sign Up',
+                    style: const TextStyle(fontSize: 18),
                   ),
                 ),
               ],
