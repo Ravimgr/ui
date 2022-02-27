@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:toggle_switch/toggle_switch.dart';
+import 'package:xyba/ui/verification.dart';
+import 'package:xyba/widgets/card.dart';
 import 'package:xyba/widgets/custom_dropdown_button.dart';
 
 enum AuthMode { signup, login }
@@ -36,12 +38,12 @@ class _AuthCardState extends State<AuthCard> {
     return Card(
       color: Colors.indigo[50],
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.0),
+        borderRadius: BorderRadius.circular(20.0),
       ),
       elevation: 8.0,
       child: Container(
         width: deviceSize.width * 0.75,
-        height: deviceSize.height * 0.5,
+        height: deviceSize.height * 0.65,
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
@@ -134,6 +136,7 @@ class _AuthCardState extends State<AuthCard> {
                     return null;
                   },
                 ),
+                if (_authMode == AuthMode.login) const SizedBox(height: 30.0),
                 if (_authMode == AuthMode.login)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -150,7 +153,15 @@ class _AuthCardState extends State<AuthCard> {
                               fontWeight: FontWeight.bold,
                               color: Color.fromRGBO(105, 49, 142, 1)),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const OtpandForgetPassword(
+                                        cardmode: Cardmode.forgetPassword,
+                                      )));
+                        },
                       ),
                     ],
                   ),
@@ -191,7 +202,15 @@ class _AuthCardState extends State<AuthCard> {
                       borderRadius: BorderRadius.circular(30.0),
                     ),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    _authMode == AuthMode.signup
+                        ? Navigator.push(context,
+                            MaterialPageRoute(builder: (context) {
+                            return const OtpandForgetPassword(
+                                cardmode: Cardmode.otpVerify);
+                          }))
+                        : '';
+                  },
                   child: Text(
                     _authMode == AuthMode.login ? 'Login' : 'Sign Up',
                     style: const TextStyle(fontSize: 18),

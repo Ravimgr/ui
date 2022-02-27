@@ -53,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           const Positioned(
             child: SingleChildScrollView(child: AuthCard()),
-            top: 200,
+            top: 160,
             right: 10,
             left: 10,
             bottom: 0,
