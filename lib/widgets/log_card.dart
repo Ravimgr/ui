@@ -103,12 +103,11 @@ class _AuthCardState extends State<AuthCard> {
                     ),
                   ),
                 TextFormField(
-                  decoration: const InputDecoration(
-                      labelText: 'Mobile Number or E-Mail'),
+                  decoration: const InputDecoration(labelText: 'Mobile Number'),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
-                    if (value!.isEmpty || !value.contains('@')) {
-                      return 'Invalid email!';
+                    if (value!.isEmpty || value.length != 10) {
+                      return 'Invalid Number!';
                     }
                     return null;
                   },
