@@ -27,6 +27,7 @@ class _CustomDropDownwithTextState extends State<CustomDropDownwithText> {
         ),
         Expanded(
           child: DropdownButtonFormField(
+              value: widget.value,
               items: widget.items.map((String item) {
                 return DropdownMenuItem(
                   alignment: Alignment.centerLeft,

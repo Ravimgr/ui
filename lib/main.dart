@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: const Color.fromRGBO(105, 49, 142, 1),
       ),
-      home: const MyHomePage(),
+      home: const HomePage(),
     );
   }
 }
