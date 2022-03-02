@@ -20,6 +20,12 @@ class _AuthCardState extends State<AuthCard> {
   bool _isObscurec = true;
   AuthMode _authMode = AuthMode.login;
 
+  final _specialityfNode = FocusNode();
+  final _dropdownfNode = FocusNode();
+  final _mobilefNode = FocusNode();
+  final _passwordfNode = FocusNode();
+  final _confirmPasswordfNode = FocusNode();
+
   // Initial Selected Value
   String dropdownvalue = 'Item 1';
   int labled = 0;
@@ -84,6 +90,7 @@ class _AuthCardState extends State<AuthCard> {
                 const SizedBox(height: 10.0),
                 if (_authMode == AuthMode.signup)
                   TextFormField(
+                    textInputAction: TextInputAction.next,
                     enabled: _authMode == AuthMode.signup,
                     decoration: const InputDecoration(labelText: 'Full Name'),
                     keyboardType: TextInputType.emailAddress,
@@ -93,16 +100,29 @@ class _AuthCardState extends State<AuthCard> {
                       }
                       return null;
                     },
+                    onFieldSubmitted: (_) {
+                      FocusScope.of(context).requestFocus(_dropdownfNode);
+                    },
                   ),
                 if (_authMode == AuthMode.signup)
-                  CustomDropDownwithText(value: dropdownvalue, items: items),
+                  CustomDropDownwithText(
+                    value: dropdownvalue,
+                    items: items,
+                    focusNode: _dropdownfNode,
+                  ),
                 if (_authMode == AuthMode.signup)
                   TextFormField(
+                    textInputAction: TextInputAction.next,
                     decoration: const InputDecoration(
                       hintText: "Speciality",
                     ),
+                    focusNode: _specialityfNode,
+                    onFieldSubmitted: (_) {
+                      FocusScope.of(context).requestFocus(_mobilefNode);
+                    },
                   ),
                 TextFormField(
+                  textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(labelText: 'Mobile Number'),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
@@ -111,8 +131,15 @@ class _AuthCardState extends State<AuthCard> {
                     }
                     return null;
                   },
+                  focusNode: _mobilefNode,
+                  onFieldSubmitted: (_) {
+                    FocusScope.of(context).requestFocus(_passwordfNode);
+                  },
                 ),
                 TextFormField(
+                  textInputAction: _authMode == AuthMode.signup
+                      ? TextInputAction.next
+                      : TextInputAction.done,
                   decoration: InputDecoration(
                       labelText: 'Password',
                       suffixIcon: IconButton(
@@ -133,6 +160,10 @@ class _AuthCardState extends State<AuthCard> {
                       return 'Password is too short!';
                     }
                     return null;
+                  },
+                  focusNode: _passwordfNode,
+                  onFieldSubmitted: (_) {
+                    FocusScope.of(context).requestFocus(_confirmPasswordfNode);
                   },
                 ),
                 if (_authMode == AuthMode.login) const SizedBox(height: 30.0),
@@ -166,6 +197,7 @@ class _AuthCardState extends State<AuthCard> {
                   ),
                 if (_authMode == AuthMode.signup)
                   TextFormField(
+                    textInputAction: TextInputAction.done,
                     decoration: InputDecoration(
                         labelText: 'Confirm Password',
                         suffixIcon: IconButton(
