@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 import 'package:xyba/network/api_client.dart';
+import 'package:xyba/ui/dashboard.dart';
 import 'package:xyba/ui/homepage.dart';
 import 'package:xyba/ui/verification.dart';
 import 'package:xyba/widgets/card.dart';
@@ -35,10 +36,12 @@ class _AuthCardState extends State<AuthCard> {
   // Initial Selected Value
   String dropdownvalue = 'Consultant';
   int labled = 0;
+  late String accessToken;
 
-  ApiClient apiClient = ApiClient();
+  ApiClient _apiClient = ApiClient();
 
   late String deviceID;
+  late String userId;
   // List of items in our dropdown menu
   var items = [
     'Consultant',
@@ -46,7 +49,38 @@ class _AuthCardState extends State<AuthCard> {
     'Medical Officer',
     'Nurse',
   ];
-  Future<void> registerUsers() async {
+  Future<void> loginFunc() async {
+    if (_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Processing Data'),
+        backgroundColor: Colors.green.shade300,
+      ));
+      dynamic res = await _apiClient.loginUser(
+        _emailController.text,
+        "12345",
+        _passwordController.text,
+      );
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      if (res['isNumberVerified'] == true) {
+        accessToken = res['token'].toString();
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => DashBoardScreen(
+                      accessToken: accessToken,
+                    )));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error: ${res['msg']}'),
+          backgroundColor: Colors.red.shade300,
+        ));
+      }
+    }
+  }
+
+  Future<void> registerFunc() async {
     if (_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: const Text('Processing Data'),
@@ -67,20 +101,23 @@ class _AuthCardState extends State<AuthCard> {
         'userType': 'resident'
       };
 
-      dynamic res = await apiClient.registerUser(userData);
+      dynamic res = await _apiClient.registerUser(userData);
       deviceID = res['device_id'].toString();
+      userId = res['user_id'].toString();
+      print('user:$userId');
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-      if (res['ErrorCode'] == null) {
+      if (res['isOTPSent'] == true) {
         Navigator.push(context, MaterialPageRoute(builder: (context) {
           return OtpandForgetPassword(
             cardmode: Cardmode.otpVerify,
             deviceID: deviceID,
+            userId: userId,
           );
         }));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error: ${res['Message']}'),
+          content: Text('Error: ${res['msg']}'),
           backgroundColor: Colors.red.shade300,
         ));
       }
@@ -289,9 +326,7 @@ class _AuthCardState extends State<AuthCard> {
                     ),
                   ),
                   onPressed: () {
-                    if (_authMode == AuthMode.signup) {
-                      registerUsers();
-                    }
+                    _authMode == AuthMode.signup ? registerFunc() : loginFunc();
                   },
                   child: Text(
                     _authMode == AuthMode.login ? 'Login' : 'Sign Up',

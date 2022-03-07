@@ -29,4 +29,33 @@ class ApiClient {
       return e.response!.data;
     }
   }
+
+  Future<dynamic> verifyOtp(String otp, String deviceId, String userId) async {
+    print(VERIFY_OTP_URL + userId);
+    try {
+      Response response = await _dio.post(VERIFY_OTP_URL + userId,
+          data: {'otp': otp, 'deviceId': deviceId},
+          options: Options(responseType: ResponseType.plain));
+      var data1 = json.decode(response.data);
+      print("data: $data1");
+      return data1;
+    } on DioError catch (e) {
+      print(e.response!.data);
+      return e.response!.data;
+    }
+  }
+
+  Future<dynamic> loginUser(
+      String email, String deviceId, String password) async {
+    try {
+      Response response = await _dio.post(LOGIN_URL,
+          data: {'email': email, 'deviceId': deviceId, 'password': password},
+          options: Options(responseType: ResponseType.plain));
+      var data1 = json.decode(response.data);
+      return data1;
+    } on DioError catch (e) {
+      print(e.response!.data);
+      return e.response!.data;
+    }
+  }
 }

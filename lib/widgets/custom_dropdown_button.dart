@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class CustomDropDownwithText extends StatefulWidget {
+class CustomDropDownwithText extends StatelessWidget {
   CustomDropDownwithText(
       {Key? key,
       required this.value,
@@ -13,12 +13,6 @@ class CustomDropDownwithText extends StatefulWidget {
   final List<String> items;
   final FocusNode focusNode;
   final Function(String? value) onChanged;
-
-  @override
-  _CustomDropDownwithTextState createState() => _CustomDropDownwithTextState();
-}
-
-class _CustomDropDownwithTextState extends State<CustomDropDownwithText> {
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -34,16 +28,16 @@ class _CustomDropDownwithTextState extends State<CustomDropDownwithText> {
         ),
         Expanded(
           child: DropdownButtonFormField(
-              focusNode: widget.focusNode,
+              focusNode: focusNode,
               //value: widget.value,
-              items: widget.items.map((String item) {
+              items: items.map((String item) {
                 return DropdownMenuItem(
                   alignment: Alignment.centerLeft,
                   child: Text(item),
                   value: item,
                 );
               }).toList(),
-              onChanged: widget.onChanged),
+              onChanged: onChanged),
         ),
       ],
     );

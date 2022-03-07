@@ -8,10 +8,12 @@ enum Cardmode {
 }
 
 class CustomCard extends StatefulWidget {
-  CustomCard({Key? key, this.cardmode, this.deviceId}) : super(key: key);
+  CustomCard({Key? key, this.cardmode, this.deviceId, this.userId})
+      : super(key: key);
 
   Cardmode? cardmode;
   String? deviceId;
+  String? userId;
 
   @override
   _CustomCardState createState() => _CustomCardState();
@@ -30,21 +32,20 @@ class _CustomCardState extends State<CustomCard> {
           content: const Text('Processing Data'),
           backgroundColor: Colors.green.shade300,
         ));
-
-        Map<String, dynamic> userData = {
-          "otp": '1234',
-          'device_id': widget.deviceId,
-        };
-        dynamic res = await _apiClient.registerUser(userData);
+        dynamic res = await _apiClient.verifyOtp(
+          _controller.text,
+          widget.deviceId.toString(),
+          widget.userId.toString(),
+        );
 
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
-        if (res['ErrorCode'] == null) {
+        if (res['token'] != null) {
           Navigator.push(context,
               MaterialPageRoute(builder: (context) => const HomePage()));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Error: ${res['Message']}'),
+            content: Text('Error: ${res['msg']}'),
             backgroundColor: Colors.red.shade300,
           ));
         }
@@ -54,6 +55,7 @@ class _CustomCardState extends State<CustomCard> {
 
   @override
   Widget build(BuildContext context) {
+    print('user:${widget.userId}');
     final deviceSize = MediaQuery.of(context).size;
     return Card(
       color: Colors.indigo[50],
