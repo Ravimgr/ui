@@ -3,10 +3,11 @@ import 'package:xyba/ui/homepage.dart';
 import 'package:xyba/widgets/card.dart';
 
 class OtpandForgetPassword extends StatelessWidget {
-  const OtpandForgetPassword({Key? key, required this.cardmode})
+  OtpandForgetPassword({Key? key, required this.cardmode, this.deviceID})
       : super(key: key);
 
   final Cardmode cardmode;
+  String? deviceID;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +27,7 @@ class OtpandForgetPassword extends StatelessWidget {
             context: context,
             customWidget: CustomCard(
               cardmode: cardmode,
+              deviceId: deviceID,
             )));
   }
 }

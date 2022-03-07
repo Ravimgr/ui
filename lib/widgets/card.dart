@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:xyba/network/api_client.dart';
+import 'package:xyba/ui/homepage.dart';
 
 enum Cardmode {
   otpVerify,
@@ -6,9 +8,10 @@ enum Cardmode {
 }
 
 class CustomCard extends StatefulWidget {
-  CustomCard({Key? key, this.cardmode}) : super(key: key);
+  CustomCard({Key? key, this.cardmode, this.deviceId}) : super(key: key);
 
   Cardmode? cardmode;
+  String? deviceId;
 
   @override
   _CustomCardState createState() => _CustomCardState();
@@ -16,6 +19,38 @@ class CustomCard extends StatefulWidget {
 
 class _CustomCardState extends State<CustomCard> {
   final GlobalKey<FormState> _formKey = GlobalKey();
+  final _controller = TextEditingController();
+  final ApiClient _apiClient = ApiClient();
+
+  Future<void> verifyOtp() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      if (_formKey.currentState!.validate()) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Processing Data'),
+          backgroundColor: Colors.green.shade300,
+        ));
+
+        Map<String, dynamic> userData = {
+          "otp": '1234',
+          'device_id': widget.deviceId,
+        };
+        dynamic res = await _apiClient.registerUser(userData);
+
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+        if (res['ErrorCode'] == null) {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const HomePage()));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Error: ${res['Message']}'),
+            backgroundColor: Colors.red.shade300,
+          ));
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,10 +79,11 @@ class _CustomCardState extends State<CustomCard> {
                         color: Colors.indigo[900])),
                 const SizedBox(height: 10.0),
                 TextFormField(
+                  controller: _controller,
                   decoration: InputDecoration(
                     hintText: widget.cardmode == Cardmode.forgetPassword
                         ? "Enter your mobile number "
-                        : "Enter 6 digits OTP code here",
+                        : "Enter 4 digits OTP code here",
                     labelStyle: TextStyle(
                       color: Colors.indigo[900],
                     ),
@@ -63,7 +99,7 @@ class _CustomCardState extends State<CustomCard> {
                     if (value!.isEmpty) {
                       return widget.cardmode == Cardmode.forgetPassword
                           ? "Please enter your mobile number"
-                          : "Please enter 6 digits OTP code";
+                          : "Please enter 4 digits OTP code";
                     }
                     return null;
                   },
@@ -79,7 +115,7 @@ class _CustomCardState extends State<CustomCard> {
                     ),
                   ),
                   onPressed: () {
-                    Navigator.of(context).pop();
+                    verifyOtp();
                   },
                   child: Text(
                       widget.cardmode == Cardmode.forgetPassword

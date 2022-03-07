@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:toggle_switch/toggle_switch.dart';
+import 'package:xyba/network/api_client.dart';
+import 'package:xyba/ui/homepage.dart';
 import 'package:xyba/ui/verification.dart';
 import 'package:xyba/widgets/card.dart';
 import 'package:xyba/widgets/custom_dropdown_button.dart';
@@ -16,6 +18,10 @@ class AuthCard extends StatefulWidget {
 class _AuthCardState extends State<AuthCard> {
   final GlobalKey<FormState> _formKey = GlobalKey();
   final _passwordController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _specialityController = TextEditingController();
+
   bool _isObscure = true;
   bool _isObscurec = true;
   AuthMode _authMode = AuthMode.login;
@@ -27,17 +33,60 @@ class _AuthCardState extends State<AuthCard> {
   final _confirmPasswordfNode = FocusNode();
 
   // Initial Selected Value
-  String dropdownvalue = 'Item 1';
+  String dropdownvalue = 'Consultant';
   int labled = 0;
 
+  ApiClient apiClient = ApiClient();
+
+  late String deviceID;
   // List of items in our dropdown menu
   var items = [
-    'Item 1',
-    'Item 2',
-    'Item 3',
-    'Item 4',
-    'Item 5',
+    'Consultant',
+    'Resident',
+    'Medical Officer',
+    'Nurse',
   ];
+  Future<void> registerUsers() async {
+    if (_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Processing Data'),
+        backgroundColor: Colors.green.shade300,
+      ));
+
+      Map<String, dynamic> userData = {
+        "email": _emailController.text,
+        "password": _passwordController.text,
+        'name': _nameController.text,
+        'is_verify': 'false',
+        'qualification': 'resident',
+        'device_id': '12345',
+        'contact_number': _emailController.text,
+        'dob': '2 march 1989',
+        'role': '2',
+        'speciality': _specialityController.text,
+        'userType': 'resident'
+      };
+
+      dynamic res = await apiClient.registerUser(userData);
+      deviceID = res['device_id'].toString();
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+      if (res['ErrorCode'] == null) {
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return OtpandForgetPassword(
+            cardmode: Cardmode.otpVerify,
+            deviceID: deviceID,
+          );
+        }));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error: ${res['Message']}'),
+          backgroundColor: Colors.red.shade300,
+        ));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final deviceSize = MediaQuery.of(context).size;
@@ -91,9 +140,10 @@ class _AuthCardState extends State<AuthCard> {
                 if (_authMode == AuthMode.signup)
                   TextFormField(
                     textInputAction: TextInputAction.next,
+                    controller: _nameController,
                     enabled: _authMode == AuthMode.signup,
                     decoration: const InputDecoration(labelText: 'Full Name'),
-                    keyboardType: TextInputType.emailAddress,
+                    keyboardType: TextInputType.text,
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Please enter your name!';
@@ -109,9 +159,14 @@ class _AuthCardState extends State<AuthCard> {
                     value: dropdownvalue,
                     items: items,
                     focusNode: _dropdownfNode,
+                    onChanged: (String? newValue) {
+                      dropdownvalue = newValue!;
+                      print(dropdownvalue);
+                    },
                   ),
                 if (_authMode == AuthMode.signup)
                   TextFormField(
+                    controller: _specialityController,
                     textInputAction: TextInputAction.next,
                     decoration: const InputDecoration(
                       hintText: "Speciality",
@@ -123,8 +178,9 @@ class _AuthCardState extends State<AuthCard> {
                   ),
                 TextFormField(
                   textInputAction: TextInputAction.next,
+                  controller: _emailController,
                   decoration: const InputDecoration(labelText: 'Mobile Number'),
-                  keyboardType: TextInputType.emailAddress,
+                  keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value!.isEmpty || value.length != 10) {
                       return 'Invalid Number!';
@@ -187,8 +243,7 @@ class _AuthCardState extends State<AuthCard> {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) =>
-                                      const OtpandForgetPassword(
+                                  builder: (context) => OtpandForgetPassword(
                                         cardmode: Cardmode.forgetPassword,
                                       )));
                         },
@@ -234,13 +289,9 @@ class _AuthCardState extends State<AuthCard> {
                     ),
                   ),
                   onPressed: () {
-                    _authMode == AuthMode.signup
-                        ? Navigator.push(context,
-                            MaterialPageRoute(builder: (context) {
-                            return const OtpandForgetPassword(
-                                cardmode: Cardmode.otpVerify);
-                          }))
-                        : '';
+                    if (_authMode == AuthMode.signup) {
+                      registerUsers();
+                    }
                   },
                   child: Text(
                     _authMode == AuthMode.login ? 'Login' : 'Sign Up',
