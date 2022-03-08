@@ -58,4 +58,17 @@ class ApiClient {
       return e.response!.data;
     }
   }
+
+  Future<dynamic> resendOtp(String contactNumber) async {
+    try {
+      Response response = await _dio.post(RESEND_OTP_URL,
+          data: {'contactNumber': contactNumber},
+          options: Options(responseType: ResponseType.plain));
+      var data1 = json.decode(response.data);
+      return data1;
+    } on DioError catch (e) {
+      print(e.response!.data);
+      return e.response!.data;
+    }
+  }
 }

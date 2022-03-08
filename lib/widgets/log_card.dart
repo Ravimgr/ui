@@ -60,6 +60,8 @@ class _AuthCardState extends State<AuthCard> {
         "12345",
         _passwordController.text,
       );
+      deviceID = res['device_id'].toString();
+      userId = res['user_id'].toString();
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
@@ -71,6 +73,25 @@ class _AuthCardState extends State<AuthCard> {
                 builder: (context) => DashBoardScreen(
                       accessToken: accessToken,
                     )));
+      }
+      if (res['isNumberVerified'] == false) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error: ${res['msg']}'),
+          backgroundColor: Colors.red.shade300,
+        ));
+        dynamic respo = await _apiClient.resendOtp(
+          _emailController.text,
+        );
+        if (respo['isOTPSent'] == true) {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => OtpandForgetPassword(
+                        cardmode: Cardmode.otpVerify,
+                        deviceID: deviceID,
+                        userId: userId,
+                      )));
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Error: ${res['msg']}'),
@@ -92,19 +113,19 @@ class _AuthCardState extends State<AuthCard> {
         "password": _passwordController.text,
         'name': _nameController.text,
         'is_verify': 'false',
-        'qualification': 'resident',
+        'qualification': dropdownvalue,
         'device_id': '12345',
         'contact_number': _emailController.text,
         'dob': '2 march 1989',
         'role': '2',
         'speciality': _specialityController.text,
-        'userType': 'resident'
+        'userType': dropdownvalue
       };
 
       dynamic res = await _apiClient.registerUser(userData);
       deviceID = res['device_id'].toString();
       userId = res['user_id'].toString();
-      print('user:$userId');
+
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
       if (res['isOTPSent'] == true) {
