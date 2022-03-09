@@ -55,7 +55,6 @@ class _CustomCardState extends State<CustomCard> {
 
   @override
   Widget build(BuildContext context) {
-    print('user:${widget.userId}');
     final deviceSize = MediaQuery.of(context).size;
     return Card(
       color: Colors.indigo[50],

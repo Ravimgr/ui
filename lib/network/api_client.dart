@@ -12,8 +12,6 @@ class ApiClient {
     Dio _dio = Dio();
     _dio.options = BaseOptions(connectTimeout: 50000, receiveTimeout: 50000);
     _dio.interceptors.clear();
-    // _dio.options.headers["content-type"] = "application/json";
-    // _dio.options.headers["accept"] = "application/json";
     _dio.options.baseUrl = BASE_URL;
     return _dio;
   }
@@ -25,22 +23,18 @@ class ApiClient {
       var data1 = json.decode(response.data);
       return data1;
     } on DioError catch (e) {
-      print(e.response!.data);
       return e.response!.data;
     }
   }
 
   Future<dynamic> verifyOtp(String otp, String deviceId, String userId) async {
-    print(VERIFY_OTP_URL + userId);
     try {
       Response response = await _dio.post(VERIFY_OTP_URL + userId,
           data: {'otp': otp, 'deviceId': deviceId},
           options: Options(responseType: ResponseType.plain));
       var data1 = json.decode(response.data);
-      print("data: $data1");
       return data1;
     } on DioError catch (e) {
-      print(e.response!.data);
       return e.response!.data;
     }
   }
@@ -54,7 +48,6 @@ class ApiClient {
       var data1 = json.decode(response.data);
       return data1;
     } on DioError catch (e) {
-      print(e.response!.data);
       return e.response!.data;
     }
   }
@@ -62,12 +55,11 @@ class ApiClient {
   Future<dynamic> resendOtp(String contactNumber) async {
     try {
       Response response = await _dio.post(RESEND_OTP_URL,
-          data: {'contactNumber': contactNumber},
+          data: {'contact_number': contactNumber},
           options: Options(responseType: ResponseType.plain));
       var data1 = json.decode(response.data);
       return data1;
     } on DioError catch (e) {
-      print(e.response!.data);
       return e.response!.data;
     }
   }

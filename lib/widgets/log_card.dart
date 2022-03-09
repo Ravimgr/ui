@@ -38,7 +38,7 @@ class _AuthCardState extends State<AuthCard> {
   int labled = 0;
   late String accessToken;
 
-  ApiClient _apiClient = ApiClient();
+  final ApiClient _apiClient = ApiClient();
 
   late String deviceID;
   late String userId;
@@ -61,7 +61,7 @@ class _AuthCardState extends State<AuthCard> {
         _passwordController.text,
       );
       deviceID = res['device_id'].toString();
-      userId = res['user_id'].toString();
+      userId = res['user'].toString();
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
