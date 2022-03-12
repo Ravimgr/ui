@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:xyba/models/verify_otp_model.dart';
 import 'package:xyba/network/api_client.dart';
-import 'package:xyba/ui/homepage.dart';
+import 'package:xyba/ui/dashboard.dart';
 
 enum Cardmode {
   otpVerify,
@@ -21,35 +22,38 @@ class CustomCard extends StatefulWidget {
 
 class _CustomCardState extends State<CustomCard> {
   final GlobalKey<FormState> _formKey = GlobalKey();
-  final _controller = TextEditingController();
+  //final _controller = TextEditingController();
   final ApiClient _apiClient = ApiClient();
+  final OtpRequestModel _otpRequestModel = OtpRequestModel();
 
   Future<void> verifyOtp() async {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      if (_formKey.currentState!.validate()) {
+      widget.deviceId = _otpRequestModel.deviceId;
+      _apiClient
+          .otpVerify(widget.userId.toString(), _otpRequestModel)
+          .then((value) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: const Text('Processing Data'),
           backgroundColor: Colors.green.shade300,
         ));
-        dynamic res = await _apiClient.verifyOtp(
-          _controller.text,
-          widget.deviceId.toString(),
-          widget.userId.toString(),
-        );
-
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-        if (res['token'] != null) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const HomePage()));
+        if (value.token != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    DashBoardScreen(accessToken: value.token.toString())),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('$value.msg'),
+            backgroundColor: Colors.green.shade300,
+          ));
         } else {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Error: ${res['msg']}'),
+            content: Text('Error: ${value.msg}'),
             backgroundColor: Colors.red.shade300,
           ));
         }
-      }
+      });
     }
   }
 
@@ -80,7 +84,7 @@ class _CustomCardState extends State<CustomCard> {
                         color: Colors.indigo[900])),
                 const SizedBox(height: 10.0),
                 TextFormField(
-                  controller: _controller,
+                  onChanged: (value) => _otpRequestModel.otp = value,
                   decoration: InputDecoration(
                     hintText: widget.cardmode == Cardmode.forgetPassword
                         ? "Enter your mobile number "

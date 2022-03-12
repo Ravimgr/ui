@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:toggle_switch/toggle_switch.dart';
+import 'package:xyba/models/login_model.dart';
+import 'package:xyba/models/register_model.dart';
+import 'package:xyba/models/resend_otp.dart';
+import 'package:xyba/models/verify_otp_model.dart';
 import 'package:xyba/network/api_client.dart';
 import 'package:xyba/ui/dashboard.dart';
 import 'package:xyba/ui/homepage.dart';
@@ -19,9 +24,6 @@ class AuthCard extends StatefulWidget {
 class _AuthCardState extends State<AuthCard> {
   final GlobalKey<FormState> _formKey = GlobalKey();
   final _passwordController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _nameController = TextEditingController();
-  final _specialityController = TextEditingController();
 
   bool _isObscure = true;
   bool _isObscurec = true;
@@ -39,6 +41,9 @@ class _AuthCardState extends State<AuthCard> {
   late String accessToken;
 
   final ApiClient _apiClient = ApiClient();
+  final RegisterRequestModel _registerRequestModel = RegisterRequestModel();
+  final LoginRequestModel _loginRequestModel = LoginRequestModel();
+  final ResendOtpRequestModel _resendOtpRequestModel = ResendOtpRequestModel();
 
   late String deviceID;
   late String userId;
@@ -51,53 +56,48 @@ class _AuthCardState extends State<AuthCard> {
   ];
   Future<void> loginFunc() async {
     if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: const Text('Processing Data'),
-        backgroundColor: Colors.green.shade300,
+        backgroundColor: Colors.red.shade300,
       ));
-      dynamic res = await _apiClient.loginUser(
-        _emailController.text,
-        "12345",
-        _passwordController.text,
-      );
-      deviceID = res['device_id'].toString();
-      userId = res['user'].toString();
 
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-      if (res['isNumberVerified'] == true) {
-        accessToken = res['token'].toString();
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => DashBoardScreen(
-                      accessToken: accessToken,
-                    )));
-      }
-      if (res['isNumberVerified'] == false) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error: ${res['msg']}'),
-          backgroundColor: Colors.red.shade300,
-        ));
-        dynamic respo = await _apiClient.resendOtp(
-          _emailController.text,
-        );
-        if (respo['isOTPSent'] == true) {
+      _apiClient.login(_loginRequestModel).then((value) {
+        userId = value.user.toString();
+        deviceID = "12345";
+        if (value.isNumberVerified == true) {
+          accessToken = value.token.toString();
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => OtpandForgetPassword(
-                        cardmode: Cardmode.otpVerify,
-                        deviceID: deviceID,
-                        userId: userId,
+                  builder: (context) => DashBoardScreen(
+                        accessToken: accessToken,
                       )));
         }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error: ${res['msg']}'),
-          backgroundColor: Colors.red.shade300,
-        ));
-      }
+        if (value.isNumberVerified == false) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Error: ${value.msg}'),
+            backgroundColor: Colors.red.shade300,
+          ));
+          _apiClient.resendOtpApi(_resendOtpRequestModel).then((value) {
+            if (value.isOtpSent == true) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => OtpandForgetPassword(
+                            cardmode: Cardmode.otpVerify,
+                            deviceID: deviceID,
+                            userId: userId,
+                          )));
+            }
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Error: ${value.msg}'),
+            backgroundColor: Colors.red.shade300,
+          ));
+        }
+      });
     }
   }
 
@@ -107,47 +107,40 @@ class _AuthCardState extends State<AuthCard> {
         content: const Text('Processing Data'),
         backgroundColor: Colors.green.shade300,
       ));
-
-      Map<String, dynamic> userData = {
-        "email": _emailController.text,
-        "password": _passwordController.text,
-        'name': _nameController.text,
-        'is_verify': 'false',
-        'qualification': dropdownvalue,
-        'device_id': '12345',
-        'contact_number': _emailController.text,
-        'dob': '2 march 1989',
-        'role': '2',
-        'speciality': _specialityController.text,
-        'userType': dropdownvalue
-      };
-
-      dynamic res = await _apiClient.registerUser(userData);
-      deviceID = res['device_id'].toString();
-      userId = res['user_id'].toString();
-
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
-      if (res['isOTPSent'] == true) {
-        Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return OtpandForgetPassword(
-            cardmode: Cardmode.otpVerify,
-            deviceID: deviceID,
-            userId: userId,
-          );
-        }));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error: ${res['msg']}'),
-          backgroundColor: Colors.red.shade300,
-        ));
-      }
+      _apiClient.register(_registerRequestModel).then((value) {
+        if (value.isOtpSent == true) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('${value.msg}'),
+            backgroundColor: Colors.green.shade300,
+          ));
+          deviceID = _registerRequestModel.deviceId.toString();
+          userId = value.userId.toString();
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => OtpandForgetPassword(
+                        cardmode: Cardmode.otpVerify,
+                        deviceID: deviceID,
+                        userId: userId,
+                      )));
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Error: ${value.msg}'),
+            backgroundColor: Colors.red.shade300,
+          ));
+        }
+      });
     }
   }
+
+  DateTime selectedDate = DateTime.now();
+  String value = "";
 
   @override
   Widget build(BuildContext context) {
     final deviceSize = MediaQuery.of(context).size;
+
     return Card(
       color: Colors.indigo[50],
       shape: RoundedRectangleBorder(
@@ -198,7 +191,8 @@ class _AuthCardState extends State<AuthCard> {
                 if (_authMode == AuthMode.signup)
                   TextFormField(
                     textInputAction: TextInputAction.next,
-                    controller: _nameController,
+                    onChanged: (newValue) =>
+                        _registerRequestModel.name = newValue,
                     enabled: _authMode == AuthMode.signup,
                     decoration: const InputDecoration(labelText: 'Full Name'),
                     keyboardType: TextInputType.text,
@@ -219,12 +213,14 @@ class _AuthCardState extends State<AuthCard> {
                     focusNode: _dropdownfNode,
                     onChanged: (String? newValue) {
                       dropdownvalue = newValue!;
-                      print(dropdownvalue);
+                      _registerRequestModel.userType = dropdownvalue;
+                      _registerRequestModel.qualification = dropdownvalue;
                     },
                   ),
                 if (_authMode == AuthMode.signup)
                   TextFormField(
-                    controller: _specialityController,
+                    onChanged: (newValue) =>
+                        _registerRequestModel.speciality = newValue,
                     textInputAction: TextInputAction.next,
                     decoration: const InputDecoration(
                       hintText: "Speciality",
@@ -234,9 +230,31 @@ class _AuthCardState extends State<AuthCard> {
                       FocusScope.of(context).requestFocus(_mobilefNode);
                     },
                   ),
+                if (_authMode == AuthMode.signup)
+                  TextFormField(
+                    readOnly: true,
+                    onChanged: (newValue) => _registerRequestModel.dob = value,
+                    textInputAction: TextInputAction.next,
+                    decoration: InputDecoration(
+                      label: Text(value),
+                      suffixIcon: IconButton(
+                          onPressed: () {
+                            _setDate(context);
+                          },
+                          icon: const Icon(Icons.calendar_today)),
+                    ),
+                    focusNode: _specialityfNode,
+                    onFieldSubmitted: (_) {
+                      FocusScope.of(context).requestFocus(_mobilefNode);
+                    },
+                  ),
                 TextFormField(
                   textInputAction: TextInputAction.next,
-                  controller: _emailController,
+                  onChanged: (newValue) {
+                    _registerRequestModel.contact_number = newValue;
+                    _registerRequestModel.email = newValue;
+                    _loginRequestModel.email = newValue;
+                  },
                   decoration: const InputDecoration(labelText: 'Mobile Number'),
                   keyboardType: TextInputType.number,
                   validator: (value) {
@@ -254,6 +272,10 @@ class _AuthCardState extends State<AuthCard> {
                   textInputAction: _authMode == AuthMode.signup
                       ? TextInputAction.next
                       : TextInputAction.done,
+                  onChanged: (newValue) {
+                    _registerRequestModel.password = newValue;
+                    _loginRequestModel.password = newValue;
+                  },
                   decoration: InputDecoration(
                       labelText: 'Password',
                       suffixIcon: IconButton(
@@ -360,5 +382,21 @@ class _AuthCardState extends State<AuthCard> {
         ),
       ),
     );
+  }
+
+  _setDate(BuildContext context) async {
+    final DateTime? selected = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2010),
+      lastDate: DateTime(2025),
+    );
+    if (selected != null && selected != selectedDate) {
+      setState(() {
+        selectedDate = selected;
+        value =
+            "${selectedDate.day}-${selectedDate.month}-${selectedDate.year}";
+      });
+    }
   }
 }

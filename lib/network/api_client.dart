@@ -1,6 +1,10 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:xyba/models/login_model.dart';
+import 'package:xyba/models/register_model.dart';
+import 'package:xyba/models/resend_otp.dart';
+import 'package:xyba/models/verify_otp_model.dart';
 import 'package:xyba/network/api_constant.dart';
 
 class ApiClient {
@@ -14,53 +18,40 @@ class ApiClient {
     _dio.interceptors.clear();
     _dio.options.baseUrl = BASE_URL;
     return _dio;
+  } //register a user
+
+  Future<RegisterResponseModel> register(
+      RegisterRequestModel registerRequestModel) async {
+    Dio _dio = getApiClient();
+    var response =
+        await _dio.post(REGISTER_URL, data: registerRequestModel.toJson());
+    return RegisterResponseModel.fromJson(response.data);
   }
 
-  Future<dynamic> registerUser(Map<String, dynamic>? data) async {
-    try {
-      Response response = await _dio.post(REGISTER_URL,
-          data: data, options: Options(responseType: ResponseType.plain));
-      var data1 = json.decode(response.data);
-      return data1;
-    } on DioError catch (e) {
-      return e.response!.data;
-    }
+  //for verify otp
+  Future<OtpResponseModel> otpVerify(
+      String userId, OtpRequestModel otpRequestModel) async {
+    Dio _dio = getApiClient();
+
+    var response = await _dio.post(VERIFY_OTP_URL + userId,
+        data: otpRequestModel.toJson());
+
+    return OtpResponseModel.fromJson(response.data);
   }
 
-  Future<dynamic> verifyOtp(String otp, String deviceId, String userId) async {
-    try {
-      Response response = await _dio.post(VERIFY_OTP_URL + userId,
-          data: {'otp': otp, 'deviceId': deviceId},
-          options: Options(responseType: ResponseType.plain));
-      var data1 = json.decode(response.data);
-      return data1;
-    } on DioError catch (e) {
-      return e.response!.data;
-    }
+  //For login
+  Future<LoginResponseModel> login(LoginRequestModel loginRequestModel) async {
+    Dio _dio = getApiClient();
+    var response = await _dio.post(LOGIN_URL, data: loginRequestModel.toJson());
+    return LoginResponseModel.fromJson(response.data);
   }
 
-  Future<dynamic> loginUser(
-      String email, String deviceId, String password) async {
-    try {
-      Response response = await _dio.post(LOGIN_URL,
-          data: {'email': email, 'deviceId': deviceId, 'password': password},
-          options: Options(responseType: ResponseType.plain));
-      var data1 = json.decode(response.data);
-      return data1;
-    } on DioError catch (e) {
-      return e.response!.data;
-    }
-  }
-
-  Future<dynamic> resendOtp(String contactNumber) async {
-    try {
-      Response response = await _dio.post(RESEND_OTP_URL,
-          data: {'contact_number': contactNumber},
-          options: Options(responseType: ResponseType.plain));
-      var data1 = json.decode(response.data);
-      return data1;
-    } on DioError catch (e) {
-      return e.response!.data;
-    }
+  //for resend otp
+  Future<ResendOtpResponseModel> resendOtpApi(
+      ResendOtpRequestModel resendOtpRequestModel) async {
+    Dio _dio = getApiClient();
+    var response =
+        await _dio.post(RESEND_OTP_URL, data: resendOtpRequestModel.toJson());
+    return ResendOtpResponseModel.fromJson(response.data);
   }
 }
